@@ -21,7 +21,7 @@ import dnnlib.tflib as tflib
 
 #----------------------------------------------------------------------------
 
-def generate_images(network_pkl, seeds, truncation_psi, outdir, class_idx, dlatents_npz):
+def generate_images(network_pkl, start_seed, truncation_psi, outdir, class_idx, dlatents_npz, diameter, frames):
     tflib.init_tf()
     print('Loading networks from "%s"...' % network_pkl)
     with dnnlib.util.open_url(network_pkl) as fp:
@@ -54,13 +54,48 @@ def generate_images(network_pkl, seeds, truncation_psi, outdir, class_idx, dlate
     if class_idx is not None:
         label[:, class_idx] = 1
 
-    for seed_idx, seed in enumerate(seeds):
+    zs = get_circularloop(Gs, frames, diameter, diameter, start_seed)
+
+    for seed_idx, z in enumerate(zs):
         print('Generating image for seed %d (%d/%d) ...' % (seed, seed_idx, len(seeds)))
-        rnd = np.random.RandomState(seed)
-        z = rnd.randn(1, *Gs.input_shape[1:]) # [minibatch, component]
-        tflib.set_vars({var: rnd.randn(*var.shape.as_list()) for var in noise_vars}) # [height, width]
+        noise_rnd = np.random.RandomState(1)
+        tflib.set_vars({var: noise_rnd.randn(*var.shape.as_list()) for var in noise_vars}) # [height, width]
         images = Gs.run(z, label, **Gs_kwargs) # [minibatch, height, width, channel]
-        PIL.Image.fromarray(images[0], 'RGB').save(f'{outdir}/seed{seed:04d}.png')
+        PIL.Image.fromarray(images[0], 'RGB').save(f'{outdir}/frame_{seed:04d}.png')
+
+
+def get_circularloop(Gs, nf, d, seed):
+    r = d/2
+    if seed:
+        np.random.RandomState(seed)
+
+    zs = []
+
+    rnd = np.random
+    latents_a = rnd.randn(1, Gs.input_shape[1])
+    latents_b = rnd.randn(1, Gs.input_shape[1])
+    latents_c = rnd.randn(1, Gs.input_shape[1])
+    latents = (latents_a, latents_b, latents_c)
+
+    current_pos = 0.0
+    step = 1./nf
+    
+    while(current_pos < 1.0):
+        zs.append(circular_interpolation(r, latents, current_pos))
+        current_pos += step
+    return zs
+
+def circular_interpolation(radius, latents_persistent, latents_interpolate):
+    latents_a, latents_b, latents_c = latents_persistent
+
+    latents_axis_x = (latents_a - latents_b).flatten() / linalg.norm(latents_a - latents_b)
+    latents_axis_y = (latents_a - latents_c).flatten() / linalg.norm(latents_a - latents_c)
+
+    latents_x = np.sin(np.pi * 2.0 * latents_interpolate) * radius
+    latents_y = np.cos(np.pi * 2.0 * latents_interpolate) * radius
+
+    latents = latents_a + latents_x * latents_axis_x + latents_y * latents_axis_y
+    return latents
 
 #----------------------------------------------------------------------------
 
@@ -106,11 +141,13 @@ def main():
 
     parser.add_argument('--network', help='Network pickle filename', dest='network_pkl', required=True)
     g = parser.add_mutually_exclusive_group(required=True)
-    g.add_argument('--seeds', type=_parse_num_range, help='List of random seeds')
+    g.add_argument('--start-seed', dest='start_seed', type='float', help='Starting seed for interpolation')
     g.add_argument('--dlatents', dest='dlatents_npz', help='Generate images for saved dlatents')
     parser.add_argument('--trunc', dest='truncation_psi', type=float, help='Truncation psi (default: %(default)s)', default=0.5)
     parser.add_argument('--class', dest='class_idx', type=int, help='Class label (default: unconditional)')
     parser.add_argument('--outdir', help='Where to save the output images', required=True, metavar='DIR')
+    parser.add_argument('--diameter', type='float', default=2.0)
+    parser.add_argument('--frames', type='float', default=5)
 
     args = parser.parse_args()
     generate_images(**vars(args))
