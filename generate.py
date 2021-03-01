@@ -146,8 +146,8 @@ def main():
     parser.add_argument('--trunc', dest='truncation_psi', type=float, help='Truncation psi (default: %(default)s)', default=0.5)
     parser.add_argument('--class', dest='class_idx', type=int, help='Class label (default: unconditional)')
     parser.add_argument('--outdir', help='Where to save the output images', required=True, metavar='DIR')
-    parser.add_argument('--diameter', type='float', default=2.0)
-    parser.add_argument('--frames', type='float', default=5)
+    parser.add_argument('--diameter', type=int, default=50.0)
+    parser.add_argument('--frames', type=int, default=5)
 
     args = parser.parse_args()
     generate_images(**vars(args))
