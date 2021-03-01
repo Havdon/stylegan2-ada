@@ -57,6 +57,8 @@ def generate_images(network_pkl, start_seed, truncation_psi, outdir, class_idx, 
         label[:, class_idx] = 1
 
     zs = get_circularloop(Gs, frames, diameter, start_seed)
+    zs = zs + get_circularloop(Gs, frames, diameter, start_seed * 2)
+    zs = zs + get_circularloop(Gs, frames, diameter, start_seed * 4)
 
     for seed_idx, z in enumerate(zs):
         print('Generating frame %d/%d ...' % (seed_idx, len(zs)))
