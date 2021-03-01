@@ -59,7 +59,7 @@ def generate_images(network_pkl, start_seed, truncation_psi, outdir, class_idx, 
     zs = get_circularloop(Gs, frames, diameter, start_seed)
 
     for seed_idx, z in enumerate(zs):
-        print('Generating frame %d/%d ...' % (seed_idx, len(seeds)))
+        print('Generating frame %d/%d ...' % (seed_idx, len(zs)))
         noise_rnd = np.random.RandomState(1)
         tflib.set_vars({var: noise_rnd.randn(*var.shape.as_list()) for var in noise_vars}) # [height, width]
         images = Gs.run(z, label, **Gs_kwargs) # [minibatch, height, width, channel]
