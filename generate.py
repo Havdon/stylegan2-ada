@@ -82,7 +82,7 @@ def get_circularloop(Gs, frames, d, seeds):
         next_p = points[i + 1]
         for step in range(0, frames_per_step):
             itr = float(step) / float(frames_per_step)
-            intepol = slerp(curr, next_p, itr)
+            interpol = slerp(curr, next_p, itr)
             zs.append(interpol)
     zs.append(points[-1])
 
