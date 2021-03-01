@@ -54,7 +54,7 @@ def generate_images(network_pkl, start_seed, truncation_psi, outdir, class_idx, 
     if class_idx is not None:
         label[:, class_idx] = 1
 
-    zs = get_circularloop(Gs, frames, diameter, diameter, start_seed)
+    zs = get_circularloop(Gs, frames, diameter, start_seed)
 
     for seed_idx, z in enumerate(zs):
         print('Generating image for seed %d (%d/%d) ...' % (seed, seed_idx, len(seeds)))
