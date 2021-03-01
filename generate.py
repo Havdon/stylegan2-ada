@@ -67,7 +67,7 @@ def generate_images(network_pkl, start_seed, truncation_psi, outdir, class_idx, 
         PIL.Image.fromarray(images[0], 'RGB').save(f'{outdir}/frame_{seed_idx:04d}.png')
 
 
-def get_circularloop(Gs, frames, d, seeds):
+def get_circular_interpolations(Gs, frames, d, seeds):
     r = d/2
     # if seed:
     #    np.random.RandomState(seed)
@@ -86,6 +86,34 @@ def get_circularloop(Gs, frames, d, seeds):
             zs.append(interpol)
     zs.append(points[-1])
 
+    return zs
+
+def get_circularloop(Gs, frames, d, seeds):
+    r = d/2
+    if seed:
+        np.random.RandomState(seed)
+
+    frames_per_step = math.floor(frames / seeds)
+
+    zs = []
+
+    prev = rnd.randn(1, Gs.input_shape[1])
+
+    for i in range(0,seeds):
+
+        rnd = np.random
+        latents_a = prev
+        latents_b = rnd.randn(1, Gs.input_shape[1])
+        latents_c = rnd.randn(1, Gs.input_shape[1])
+        latents = (latents_a, latents_b, latents_c)
+        prev = latents_c
+
+        current_pos = 0.0
+        step = 1./frames_per_step
+        
+        while(current_pos < 1.0):
+            zs.append(circular_interpolation(r, latents, current_pos))
+            current_pos += step
     return zs
 
 def circular_interpolation(radius, latents_persistent, latents_interpolate):
