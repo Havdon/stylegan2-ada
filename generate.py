@@ -14,6 +14,8 @@ import pickle
 import re
 
 import numpy as np
+
+from numpy import linalg
 import PIL.Image
 
 import dnnlib
