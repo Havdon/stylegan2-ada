@@ -12,6 +12,7 @@ import argparse
 import os
 import pickle
 import re
+import math
 
 import numpy as np
 
@@ -56,9 +57,7 @@ def generate_images(network_pkl, start_seed, truncation_psi, outdir, class_idx, 
     if class_idx is not None:
         label[:, class_idx] = 1
 
-    zs = get_circularloop(Gs, frames, diameter, start_seed)
-    zs = zs + get_circularloop(Gs, frames, diameter, start_seed * 2)
-    zs = zs + get_circularloop(Gs, frames, diameter, start_seed * 4)
+    zs = get_circularloop(Gs, frames, diameter, 5)
 
     for seed_idx, z in enumerate(zs):
         print('Generating frame %d/%d ...' % (seed_idx, len(zs)))
@@ -68,25 +67,25 @@ def generate_images(network_pkl, start_seed, truncation_psi, outdir, class_idx, 
         PIL.Image.fromarray(images[0], 'RGB').save(f'{outdir}/frame_{seed_idx:04d}.png')
 
 
-def get_circularloop(Gs, nf, d, seed):
+def get_circularloop(Gs, frames, d, seeds):
     r = d/2
-    if seed:
-        np.random.RandomState(seed)
+    # if seed:
+    #    np.random.RandomState(seed)
 
+    points = [np.random.randn(1, Gs.input_shape[1]) for _ in range(0, seeds)]
     zs = []
 
-    rnd = np.random
-    latents_a = rnd.randn(1, Gs.input_shape[1])
-    latents_b = rnd.randn(1, Gs.input_shape[1])
-    latents_c = rnd.randn(1, Gs.input_shape[1])
-    latents = (latents_a, latents_b, latents_c)
+    frames_per_step = math.floor(seeds / frames)
+    for i in range(0, seeds - 1):
+        curr = points[i]
+        zs.append(curr)
+        next_p = points[i + 1]
+        for step in range(0, frames_per_step):
+            itr = float(step) / float(frames_per_step)
+            intepol = slerp(curr, next_p, itr)
+            zs.append(interpol)
+    zs.append(points[-1])
 
-    current_pos = 0.0
-    step = 1./nf
-    
-    while(current_pos < 1.0):
-        zs.append(circular_interpolation(r, latents, current_pos))
-        current_pos += step
     return zs
 
 def circular_interpolation(radius, latents_persistent, latents_interpolate):
@@ -100,6 +99,14 @@ def circular_interpolation(radius, latents_persistent, latents_interpolate):
 
     latents = latents_a + latents_x * latents_axis_x + latents_y * latents_axis_y
     return latents
+
+
+def slerp(p0, p1, t):
+  #Spherical linear interpolation.
+  omega = np.arccos(np.dot(
+      np.squeeze(p0/np.linalg.norm(p0)), np.squeeze(p1/np.linalg.norm(p1))))
+  so = np.sin(omega)
+  return np.sin((1.0-t)*omega) / so * p0 + np.sin(t*omega)/so * p1
 
 #----------------------------------------------------------------------------
 
