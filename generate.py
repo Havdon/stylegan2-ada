@@ -75,7 +75,7 @@ def get_circularloop(Gs, frames, d, seeds):
     points = [np.random.randn(1, Gs.input_shape[1]) for _ in range(0, seeds)]
     zs = []
 
-    frames_per_step = math.floor(seeds / frames)
+    frames_per_step = math.floor(frames / seeds)
     for i in range(0, seeds - 1):
         curr = points[i]
         zs.append(curr)
