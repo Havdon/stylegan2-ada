@@ -95,11 +95,13 @@ def get_circularloop(Gs, frames, d, seeds):
 
     zs = []
 
+    rnd = np.random
+
     prev = rnd.randn(1, Gs.input_shape[1])
 
     for i in range(0,seeds):
 
-        rnd = np.random
+        
         latents_a = prev
         latents_b = rnd.randn(1, Gs.input_shape[1])
         latents_c = rnd.randn(1, Gs.input_shape[1])
