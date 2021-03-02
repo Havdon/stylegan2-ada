@@ -90,8 +90,6 @@ def get_circular_interpolations(Gs, frames, d, seeds):
 
 def get_circularloop(Gs, frames, d, seeds):
     r = d/2
-    if seed:
-        np.random.RandomState(seed)
 
     frames_per_step = math.floor(frames / seeds)
 
