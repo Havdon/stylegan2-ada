@@ -296,7 +296,7 @@ def convertZtoW(latent, truncation_psi=0.7, truncation_cutoff=9):
 
     return dlatent
 
-def generate_latent_images(zs, truncation_psi, outdir, save_npy,prefix,vidname,framerate,class_idx=None, seed):
+def generate_latent_images(zs, truncation_psi, outdir, save_npy,prefix,vidname,framerate,class_idx=None, seed=1):
     Gs_kwargs = {
         'output_transform': dict(func=tflib.convert_images_to_uint8, nchw_to_nhwc=True),
         'randomize_noise': False
