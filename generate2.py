@@ -467,7 +467,7 @@ def generate_latent_walk(network_pkl, truncation_psi, outdir, walk_type, frames,
             seed_out = 'z-' + wt[0] + ('-'.join([str(seed) for seed in seeds]))
         else:
             seed_out = 'z-' + walk_type + '-seed' +str(start_seed)
-        generate_latent_images(points, truncation_psi, outdir, save_vector,'frame', seed_out, framerate, start_seed)
+        generate_latent_images(points, truncation_psi, outdir, save_vector,'frame', seed_out, framerate, seed=start_seed)
 
 #----------------------------------------------------------------------------
 
